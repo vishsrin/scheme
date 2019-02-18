@@ -1,0 +1,180 @@
+(define (add2 x)
+  (+ 2 x))
+
+(define (gt6 x)
+    (> x 6))
+
+(define (makelist a b c)
+  (cons a (cons b (cons c null))))
+
+(define (length1 list x)
+  (cond
+    ((null? list) x)
+    (else (length1 (cdr list) (+ x 1)))))
+
+(define (l2 list)
+  (cond
+    ((null? list) 0)
+    (else (+ 1 (l2 (cdr list))))))
+
+(define (fact n)
+  (fact1 n 1))
+
+(define (fact1 n progans)
+  (cond
+    ((= n 1) progans)
+    (else (fact1 (- n 1) (* progans n)))))
+
+
+(define (reverse list)
+  (rev1 list '()))
+
+(define (rev1 list1 list2)
+  (cond
+    ((null? list1) list2)
+    (else (rev1 (cdr list1) (cons (car list1) list2)))))
+
+(define (apply-v fn list)
+  (cond
+    ((null? list) '())
+    (else (cons (fn (car list)) (apply-v fn (cdr list))))))
+
+(define (every fn list)
+  (cond
+    ((null? list) #t)
+    ((fn (car list))(every fn (cdr list)))
+    (else #f)))
+
+(define (any fn list)
+  (cond
+    ((null? list) #f)
+    ((fn (car list)) #t)
+    (else (any fn (cdr list)))))
+
+(define (findrt fn lb ub err n)
+  (let ((mid (/ (+ lb ub) 2)))
+  (cond
+    ((= n 0) (cons mid n))
+    ((<  (abs (fn mid)) err) (cons mid n))
+    ((< 0 (fn mid))(findrt fn lb mid err (- n 1)))
+    (else (findrt fn mid ub err (- n 1))))))
+
+(define (qq x)
+  (- (sin x) 0.5))
+
+(define (cosv ang)
+  (let* ((angdata (quad? ang))(roughcos (car(findcos (/ (car angdata) (/ pi 2)) 0.00000001 1000))))
+  (cond
+    ((= (cdr angdata) 4)roughcos)
+    ((= (cdr angdata) 3)(- roughcos))
+    ((= (cdr angdata) 2)(- roughcos))
+    (else roughcos))))
+
+(define (quad? ang)
+  (cond
+    ((<= (* 2 pi) ang)(quad? (- ang (* 2 pi))))
+    ((< (/ (* 3 pi) 2) ang)(cons (- (* 2 pi) ang) 4))
+    ((<= pi ang)(cons (- ang pi) 3))
+    ((< (/ pi 2) ang)(cons (- pi ang) 2))
+    (else (cons ang 1))))
+
+(define (findcos ang err n)
+  (findcos1 ang err n 1 1 0))
+
+(define (findcos1 ang err n ansprog lastsubang coslastsubang)
+  (cond
+    ((= n 0) (cons ansprog n))
+    ((< ang err) (cons ansprog n))
+    ((<= lastsubang ang)(findcos1 (- ang lastsubang) err (- n 1) (cos+ coslastsubang ansprog) (/ lastsubang 2) (halfcos coslastsubang)))
+    (else (> lastsubang ang)(findcos1 ang err (- n 1) ansprog (/ lastsubang 2) (halfcos coslastsubang)))))
+    
+(define (halfcos cosang)
+  (sqrt (/ (+ cosang 1) 2)))
+
+(define (cos+ cosa cosb)
+  (- (* cosa cosb) (* (findsin cosa) (findsin cosb))))
+
+(define (findsin cosang)
+  (sqrt (- 1 (* cosang cosang))))
+
+(define (sinv ang)
+  (findsin (cosv ang)))
+
+(define (tanv ang)
+  (/ (sinv ang) (cosv ang)))
+
+(define (trigtester fn1 fn2 k)
+  (apply-v (lambda (x) (cons x (abs (* 100 (/ (- (fn1 x) (fn2 x)) (fn2 x)))))) (randtestvals k)))
+
+(define (randtestvals k)
+  (cond
+    ((= k 0) '())
+    (else (cons (* (* 100 pi) (random)) (randtestvals (- k 1))))))
+
+(define (maxv lst accfn)
+  (maxv1 lst accfn 0 #f))
+
+(define (maxv1 lst accfn currmax maxitem)
+  (cond
+    ((null? lst) maxitem)
+    ((> (accfn (car lst)) currmax) (maxv1 (cdr lst) accfn (accfn (car lst)) (car lst)))
+    (else (maxv1 (cdr lst) accfn currmax maxitem))))
+
+(define (perms lst)
+ ; (print lst)
+  (cond
+    ((null? (cdr lst)) (list lst))
+    (else (apply append
+                 (map (lambda (x) (allinserts (car lst) x)) (perms (cdr lst)))))))
+
+(define (allinserts item lst)
+ ; (print item)
+ ; (print lst)
+  (cond
+    ((null? lst) (list (list item)))
+    (else (let* ((perm1 (cons item lst))
+                 (restperms (map (lambda (perm) (cons (car lst) perm)) (allinserts item (cdr lst)))))
+            (cons perm1 restperms)))))
+
+(define (perms-2 lst k)
+  (cond
+    ((= k 0)(list null))
+    ((null? lst)(list '()))
+    (else (apply append
+                 (map (lambda (x)(insert-in-front-of-each x (perms-2 (remove x lst) (- k 1)))) lst)))))
+
+(define (insert-in-front-of-each first-item list-of-lists)
+  (map (lambda (lst) (cons first-item lst)) list-of-lists))
+
+(define (allsubs lst)
+  (cond
+    ((null? lst) (list '()))
+    (else (let ((restsubs (allsubs (cdr lst)))) 
+            (append (insert-in-front-of-each (car lst) restsubs) restsubs)))))
+
+(define (combs lst k)
+  (cond
+    ((= k 0) (list '()))
+    ((null? lst)'())
+    (else (apply append
+                 (map (lambda (x)(insert-in-front-of-each x (combs (removebefore x lst) (- k 1)))) lst)))))
+;(trace combs)
+
+
+(define (combs1 set k)
+  (cond
+    ((= k 0) (list '()))
+    ((null? set) '())
+    (else (append
+           (insert-in-front-of-each (car set) (combs1 (cdr set) (- k 1)))
+           (combs1 (cdr set) k)))))
+
+
+(trace combs1)
+  
+(define (removebefore item lst)
+  (cond
+    ((null? lst) '())
+    ((equal? item (car lst)) (cdr lst))
+    (else (removebefore item (cdr lst)))))
+
